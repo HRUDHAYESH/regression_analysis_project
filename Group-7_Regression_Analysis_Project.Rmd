@@ -1,0 +1,165 @@
+---
+title: "Regression Analysis of Company Performance"
+author:
+  - "GROUP:7"
+  - "RAHUL GUNDEKARI"
+  - "HRUDHAYESH DONIKALA"
+ 
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+  date: "02-12-2024"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Introduction
+
+In the current competitive business landscape, understanding the factors that drive profitability is crucial for any company. By leveraging statistical models, we can uncover the relationships between various spending strategies and overall financial success. In this presentation, we delve into a dataset comprising several companies' spendings on research and development (R&D), administration, and marketing, along with their respective profits.
+
+# Question of Interest
+- What role does marketing and administrative spending play in profitability?
+- Are there state-wise variations in how these factors affect profits?
+
+By examining these questions through the lens of regression analysis, we will not only gain insights into effective spending strategies but also forecast future profits based on current spending patterns
+
+# Install packages (Installing required packages)
+install.packages("dplyr")
+install.packages("tidyverse")
+install.packages("caret")
+install.packages("caTools")
+library(caret)
+library(dplyr)
+library(caTools)
+
+# Data Understanding
+
+```{r, echo = TRUE}
+data <- read.csv("C:\\Users\\RAHUL\\Downloads\\Regression data.csv")
+data
+```
+
+# Checking for Null values
+
+```{r}
+colSums(is.na(data))
+
+# Options for handling missing values:
+# Option 1: Remove rows with missing values
+data <- na.omit(data)
+```
+# Dataset Description 
+- **R.D.Spend**:  Shows Financial expenditure on development and research activities
+- **Administration**: Displays the administrative expenses for different companies
+- **Marketing.Spend**: Investment in marketing and promotional activities
+- **State**: The U.S. states where the company's operations are based.
+- **Profit**: Shows the profit of the companies as per state
+
+# Summary of data
+```{r, echo = TRUE}
+# Summary of the data
+summary(data)
+```
+# EDA (Exploratory Data Analysis)
+```{r, echo = TRUE}
+# Plotting histograms
+hist(data$Profit, main="Profit Distribution", xlab="Profit")
+```
+
+# Histogram of R.D spend Distribuition
+```{r, echo = TRUE}
+hist(data$R.D.Spend, main="R.D Spend Distribution", xlab="R.D Spend")
+```
+
+# Boxplot of Profit according to states
+```{r, echo = TRUE}
+# Boxplots for understanding distributions across states
+boxplot(Profit ~ State, data=data, main="Profit by State")
+```
+
+# Correlation Matrix
+```{r, echo = TRUE}
+cor(data[, c("R.D.Spend", "Administration", "Marketing.Spend", "Profit")])
+```
+# Linear regression model, Coefficients 
+#Multiple regression = (Y =β0+β1X1+β2X2+β3X3+ϵ)
+```{r, echo = TRUE}
+model <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend + State, data=data)
+```
+```{r, echo = TRUE}
+# Summary of the model to check coefficients and statistics
+summary(model)
+```
+# Assumption validation
+```{r}
+library(dplyr)
+par(mfrow=c(2,2))
+model %>% plot()
+```
+# Check for normality through histogram
+```{r}
+hist(resid(model),main="Histogram of Residuals")
+```
+
+# Here, this code shows training the dataset and testing it. Moreover, performs linear regression model
+```{r}
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# Install the caret package if not already installed
+if (!require(caret)) {
+  install.packages("caret", dependencies = TRUE)
+  library(caret)
+}
+
+# Convert State to a factor if it's not already
+data$State <- as.factor(data$State)
+
+# Split data into training and testing sets using caret
+set.seed(123) # for reproducibility
+splitIndex <- createDataPartition(data$Profit, p = 0.7, list = FALSE)
+trainingSet <- data[splitIndex, ]
+testingSet <- data[-splitIndex, ]
+
+# Fitting Linear Regression to the training set
+model <- lm(Profit ~ ., data = trainingSet)
+
+# Display the summary of the model
+summary(model)
+
+# Making predictions on the testing set
+predictions <- predict(model, newdata = testingSet)
+```
+
+# Calculating the Root Mean Squared Error(RMSE)
+```{r}
+rmse <- sqrt(mean((testingSet$Profit - predictions)^2))
+print(paste("Root Mean Squared Error (RMSE):", rmse))
+```
+
+# Calculating R-Squared
+```{r}
+ss_total <- sum((testingSet$Profit - mean(testingSet$Profit))^2)
+ss_residuals <- sum((testingSet$Profit - predictions)^2)
+r_squared <- 1 - (ss_residuals / ss_total)
+print(paste("R-squared:", r_squared))
+```
+
+# Conclusion
+-> After viewing all results, we have understood that observe "R.D Spend" and "Marketing Spend" has a positive significant impact on the target variable "Profit".
+
+-> R-squared value 0.8895 which states that the predictors selected have explained 88% of the variance of the target variable "Profit".
+
+-> Our regression analysis revealed significant insights into the factors affecting company profits. The R.D Spend emerged as a significant predictor, indicating a strong positive correlation with Profit. 
+
+-> For every unit increase in R&D Spend, there was a corresponding increase in Profit, suggesting that investments in research and development are likely to yield financial benefits.
+
+-> The variable 'State' added an interesting dimension to our analysis. The model indicated that the location of the company plays a role in profitability, with companies in New York and California showing different profit patterns compared to those in Florida.
+
+# Reference/ Source
+
+ Taken help from AI tool called "chatGpt" at "assumption validation" stage. 
+
+
+
